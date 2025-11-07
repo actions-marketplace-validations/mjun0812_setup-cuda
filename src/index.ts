@@ -67,7 +67,7 @@ async function run(): Promise<void> {
       filename = `cuda_${targetCudaVersion}_windows.exe`;
     }
     const installerPath = await tc.downloadTool(cudaInstallerUrl, filename);
-    core.debug(`CUDA installer downloaded to: ${filename}`);
+    core.info(`CUDA installer downloaded to: ${filename}`);
 
     // Install CUDA
     if (osType === OS.LINUX) {
