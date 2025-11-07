@@ -1,0 +1,27 @@
+name: mjun0812/setup-cuda
+description: Set up a specific version of NVIDIA CUDA in GitHub Actions.
+author: mjun0812
+
+branding:
+  icon: box
+  color: green
+
+inputs:
+  version:
+    description: |
+      The version of NVIDIA CUDA to install.
+      If this value is not specified, the latest version will be installed.
+      This value is accepted in the `Major.Minor.Patch` or `Major.Minor` format.
+      If the Patch version is not specified, the latest Patch version will be installed.
+      For example, '13.0.1' or '13.0'.
+    default: latest
+
+outputs:
+  version:
+    description: The version of NVIDIA CUDA that was installed.
+  cuda-path:
+    description: The path to the NVIDIA CUDA installation.
+
+runs:
+  using: node24
+  main: dist/index.js
