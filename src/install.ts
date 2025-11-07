@@ -11,20 +11,25 @@ import * as path from 'path';
 export async function installCudaLinux(installerPath: string, version: string): Promise<void> {
   // https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#runfile-installation
   core.info('Installing CUDA on Linux...');
-  const absPath = path.resolve(installerPath);
-  const command = `sudo sh ${absPath}`;
 
   // Make installer executable
-  await exec.exec('chmod', ['+x', absPath]);
+  await exec.exec('chmod', ['+x', installerPath]);
 
   // Install CUDA toolkit only (without driver)
   // --silent: Run installer in silent mode
   // --toolkit: Install CUDA Toolkit only
+  // --toolkitpath: Specify installation directory
+  // --tmpdir: Use /mnt for temp files (has more space on GitHub Actions runners: ~84GB vs /tmp: ~14GB)
   const cudaPath = '/usr/local/cuda';
-  const installArgs = ['--silent', '--toolkit', `--toolkitpath=${cudaPath}`];
+  const installArgs = ['--silent', '--toolkit', `--toolkitpath=${cudaPath}`, '--tmpdir=/mnt'];
 
-  core.debug(`Executing: ${command} ${installArgs.join(' ')}`);
-  await exec.exec(command, installArgs);
+  core.debug(`Executing: ${installerPath} ${installArgs.join(' ')}`);
+  await exec.exec('sudo', [installerPath, ...installArgs]);
+
+  // Verify installation
+  if (!fs.existsSync(cudaPath)) {
+    throw new Error(`CUDA installation failed. Path not found: ${cudaPath}`);
+  }
 
   // Set environment variables
   core.info('Setting environment variables...');

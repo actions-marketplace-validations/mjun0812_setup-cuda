@@ -1,5 +1,5 @@
 import { HttpClient } from '@actions/http-client';
-import { OS, Arch } from './os';
+import { OS, Arch } from './os_arch';
 import { sortVersions, compareVersions } from './utils';
 import { CUDA_LINKS, START_SUPPORTED_CUDA_VERSION, OLD_CUDA_VERSIONS } from './const';
 

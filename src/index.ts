@@ -10,7 +10,7 @@ import {
   getLinuxDistribution,
   WindowsVersion,
   getWindowsVersion,
-} from './os';
+} from './os_arch';
 import { findCudaVersion, getCudaInstallerUrl } from './cuda';
 import { installCudaLinux, installCudaWindows } from './install';
 
@@ -24,23 +24,23 @@ async function run(): Promise<void> {
     core.info(`Input version: ${inputVersion}`);
 
     // Get OS and architecture
-    const os = getOS();
+    const osType = getOS();
     const arch = getArch();
-    core.info(`OS: ${os}`);
+    core.info(`OS: ${osType}`);
     core.info(`Architecture: ${arch}`);
-    if (os === OS.WINDOWS && arch === Arch.ARM64_SBSA) {
+    if (osType === OS.WINDOWS && arch === Arch.ARM64_SBSA) {
       throw new Error('CUDA is not supported on Windows with Arm architecture');
     }
 
     // Get Linux distribution or Windows version
     let linuxDistribution: LinuxDistribution | undefined;
     let windowsVersion: WindowsVersion | undefined;
-    if (os === OS.LINUX) {
+    if (osType === OS.LINUX) {
       linuxDistribution = getLinuxDistribution();
       core.info(
         `Linux distribution: ${linuxDistribution.id} ${linuxDistribution.version} ${linuxDistribution.name}`
       );
-    } else if (os === OS.WINDOWS) {
+    } else if (osType === OS.WINDOWS) {
       windowsVersion = getWindowsVersion();
       core.info(
         `Windows version: ${windowsVersion.name} (${windowsVersion.release}, build ${windowsVersion.build})`
@@ -55,25 +55,30 @@ async function run(): Promise<void> {
     core.info(`Target CUDA version: ${targetCudaVersion}`);
 
     // Get CUDA installer URL
-    const cudaInstallerUrl = await getCudaInstallerUrl(targetCudaVersion, os, arch);
+    const cudaInstallerUrl = await getCudaInstallerUrl(targetCudaVersion, osType, arch);
     core.debug(`CUDA installer URL: ${cudaInstallerUrl}`);
 
     // Download CUDA installer
     core.info('Downloading CUDA installer...');
-    const filename = path.basename(cudaInstallerUrl);
+    let filename = path.basename(cudaInstallerUrl);
+    if (osType === OS.LINUX) {
+      filename = `cuda_${targetCudaVersion}_linux.run`;
+    } else if (osType === OS.WINDOWS) {
+      filename = `cuda_${targetCudaVersion}_windows.exe`;
+    }
     const installerPath = await tc.downloadTool(cudaInstallerUrl, filename);
     core.debug(`CUDA installer downloaded to: ${filename}`);
 
     // Install CUDA
-    if (os === OS.LINUX) {
+    if (osType === OS.LINUX) {
       await installCudaLinux(installerPath, targetCudaVersion);
-    } else if (os === OS.WINDOWS) {
+    } else if (osType === OS.WINDOWS) {
       await installCudaWindows(installerPath, targetCudaVersion);
     }
 
     // Get CUDA installation path
     let cudaPath: string;
-    if (os === OS.LINUX) {
+    if (osType === OS.LINUX) {
       cudaPath = '/usr/local/cuda';
     } else {
       const majorMinor = targetCudaVersion.split('.').slice(0, 2).join('.');
