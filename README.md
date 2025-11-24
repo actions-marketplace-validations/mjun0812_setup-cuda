@@ -1,38 +1,106 @@
 # setup-cuda
 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mjun0812/setup-cuda)](https://github.com/mjun0812/setup-cuda/releases)
+[![GitHub](https://img.shields.io/github/license/mjun0812/setup-cuda)](https://github.com/mjun0812/setup-cuda)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Setup%20CUDA-blue.svg)](https://github.com/marketplace/actions/mjun0812-setup-cuda)
+
 Set up a specific version of NVIDIA CUDA in GitHub Actions.
 
-## Usage
+## Features
+
+- **Dynamic Version Selection**: Install any CUDA version without waiting for action updates
+- **Flexible Version Specification**: Support for `latest`, `Major.Minor`, or `Major.Minor.Patch` formats
+- **Automatic Installation Method Selection**: Intelligently chooses between network and local installers
+- **Cross-Platform Support**: Works on both Linux and Windows runners
+- **Environment Configuration**: Automatically sets up all necessary environment variables
+
+## Supported Platforms
+
+- **Linux**: ubuntu-latest, ubuntu-24.04, ubuntu-22.04
+- **Windows**: windows-latest, windows-2025, windows-2022
+
+## Quick Start
 
 ```yaml
 steps:
   - name: Setup CUDA
     uses: mjun0812/setup-cuda@v1
     with:
-      version: 12
+      version: '12.4'
+```
+
+## Usage Examples
+
+### Install the latest CUDA version
+
+```yaml
+steps:
+  - name: Setup latest CUDA
+    uses: mjun0812/setup-cuda@v1
+    with:
+      version: 'latest'
+```
+
+### Install a specific major.minor version
+
+The latest patch version will be automatically selected.
+
+```yaml
+steps:
+  - name: Setup CUDA 12.4
+    uses: mjun0812/setup-cuda@v1
+    with:
+      version: '12.4'
+```
+
+### Install a specific patch version
+
+```yaml
+steps:
+  - name: Setup CUDA 12.4.1
+    uses: mjun0812/setup-cuda@v1
+    with:
+      version: '12.4.1'
+```
+
+### Specify installation method
+
+```yaml
+steps:
+  - name: Setup CUDA with network installer
+    uses: mjun0812/setup-cuda@v1
+    with:
+      version: '12.4'
+      method: 'network'  # or 'local', 'auto'
 ```
 
 ## Inputs
 
 ### `version`
 
-The version of NVIDIA CUDA to install.
+**Description**: The version of NVIDIA CUDA to install.
 
-- Format: `Major.Minor.Patch` (e.g., `12.4.1`) or `Major.Minor` (e.g., `12.4`).
-- `latest`: Install the latest available version.
-- If the Patch version is omitted, the latest Patch version for that Major.Minor will be installed.
+**Format**:
 
-**Default:** `latest`
+- `latest`: Install the latest available version
+- `Major.Minor` (e.g., `12.4`): Install the latest patch version for the specified major.minor version
+- `Major.Minor.Patch` (e.g., `12.4.1`): Install the exact version specified
+
+**Required**: No
+**Default**: `latest`
 
 ### `method`
 
-The method to use to install CUDA.
+**Description**: The method to use to install CUDA.
 
-- `auto`: Tries to install using the `network` method first. If it fails or is not available, falls back to `local`.
-- `network`: Uses the CUDA network installer. Faster download, but supported combinations of CUDA versions and OS are limited.
-- `local`: Downloads the full local installer. More robust availability, but larger download size.
+**Options**:
 
-**Default:** `auto`
+- `auto`: Tries the `network` method first. If it fails or is unavailable, falls back to `local`
+- `network`: Uses the CUDA network installer. Faster download, but supported combinations of CUDA versions and OS are limited
+- `local`: Downloads the full local installer. More robust availability, but larger download size
+
+**Required**: No
+**Default**: `auto`
 
 ## Outputs
 
@@ -40,17 +108,85 @@ The method to use to install CUDA.
 
 The full version string of NVIDIA CUDA that was actually installed (e.g., `12.4.1`).
 
+**Example**:
+
+```yaml
+- name: Setup CUDA
+  id: cuda
+  uses: mjun0812/setup-cuda@v1
+  with:
+    version: '12.4'
+
+- name: Print installed version
+  run: echo "Installed CUDA version ${{ steps.cuda.outputs.version }}"
+```
+
 ### `cuda-path`
 
 The absolute path to the NVIDIA CUDA installation directory.
 
-This action also sets the following environment variables:
+**Example**:
 
-- `CUDA_PATH`: Set to the installation directory.
-- `CUDA_HOME`: Set to the installation directory.
-- `PATH`: Prepend `${CUDA_PATH}/bin`.
-- `LD_LIBRARY_PATH`: (Linux only) Prepend `${CUDA_PATH}/lib64`.
-- (Windows only) Prepend `${CUDA_PATH}/lib/x64` to `PATH`.
+```yaml
+- name: Setup CUDA
+  id: cuda
+  uses: mjun0812/setup-cuda@v1
+
+- name: Use CUDA path
+  run: echo "CUDA installed at ${{ steps.cuda.outputs.cuda-path }}"
+```
+
+## Environment Variables
+
+This action automatically configures the following environment variables for subsequent steps:
+
+### Common (Linux and Windows)
+
+- `CUDA_PATH`: Path to the CUDA installation directory
+- `CUDA_HOME`: Alias for `CUDA_PATH` (commonly used by build systems)
+- `PATH`: Prepends `${CUDA_PATH}/bin` for access to CUDA binaries (nvcc, etc.)
+
+### Linux-specific
+
+- `LD_LIBRARY_PATH`: Prepends `${CUDA_PATH}/lib64` for runtime library loading
+
+### Windows-specific
+
+- `PATH`: Also includes `${CUDA_PATH}/lib/x64` for DLL access
+
+## Troubleshooting
+
+### CUDA installation fails with network method
+
+If the network installer fails, the action will automatically fall back to the local installer when using `method: auto`. You can also explicitly specify `method: local`.
+
+```yaml
+- name: Setup CUDA with local installer
+  uses: mjun0812/setup-cuda@v1
+  with:
+    version: '12.4'
+    method: 'local'
+```
+
+### Specific version not found
+
+Ensure the version you specified is available on the NVIDIA website. You can check available versions at:
+
+- [CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive)
+
+### No space left on device
+
+If you encounter an error like `No space left on device`, you can try to expand the disk space before running the action:
+
+```yaml
+- name: Expand disk space
+  run: |
+    df -h
+    sudo rm -rf /usr/share/dotnet || true
+    sudo rm -rf /usr/local/lib/android || true
+    echo "-------"
+    df -h
+```
 
 ## Questions
 
