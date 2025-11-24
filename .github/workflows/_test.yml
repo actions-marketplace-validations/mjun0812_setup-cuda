@@ -15,11 +15,19 @@ on:
         description: 'Method to test'
         required: true
         type: string
+      debug:
+        description: 'Enable debug logging'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   Test:
     name: Test (${{ inputs.os }}, CUDA ${{ inputs.version }})
     runs-on: ${{ inputs.os }}
+    env:
+      ACTIONS_STEP_DEBUG: ${{ inputs.debug }}
+      ACTIONS_RUNNER_DEBUG: ${{ inputs.debug }}
 
     steps:
       - name: Expand Disk Space

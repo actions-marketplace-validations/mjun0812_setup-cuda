@@ -1,5 +1,5 @@
 import { HttpClient } from '@actions/http-client';
-import { OS, Arch, LinuxDistribution, WindowsVersion } from './os_arch';
+import { OS, Arch, LinuxDistribution } from './os_arch';
 import { sortVersions, compareVersions } from './utils';
 import { CUDA_LINKS, START_SUPPORTED_CUDA_VERSION, OLD_CUDA_VERSIONS } from './const';
 
@@ -430,7 +430,7 @@ export async function findCudaNetworkInstallerWindows(
     if (response.message.statusCode === 200) {
       return url;
     }
-  } catch (error) {
+  } catch {
     // If HEAD request fails, the installer doesn't exist
     return undefined;
   }

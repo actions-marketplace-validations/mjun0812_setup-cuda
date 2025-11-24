@@ -173,13 +173,6 @@ async function installCudaLinuxNetwork(
       await exec.exec(`sudo apt-get install -y ${packageName}`);
       cudaPath = '/usr/local/cuda';
     } else if (osInfo.idLink === 'fedora') {
-      let repoFilePath: string;
-      try {
-        repoFilePath = await tc.downloadTool(repoUrl);
-      } catch (error) {
-        throw new Error(`Failed to download CUDA repository file from ${repoUrl}: ${error}`);
-      }
-      repoFilePath = path.resolve(repoFilePath);
       await exec.exec(`sudo dnf config-manager --add-repo ${repoUrl}`);
       await exec.exec(`sudo dnf clean all`);
       await exec.exec(`sudo dnf install -y ${packageName}`);

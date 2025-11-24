@@ -56,7 +56,9 @@ jobs:
           - network
           - auto
     uses: ./.github/workflows/_test.yml
+    secrets: inherit
     with:
       os: ${{ matrix.os }}
       version: 'latest'
       method: ${{ matrix.method }}
+      debug: true
