@@ -14,7 +14,7 @@ Set up a specific version of NVIDIA CUDA in GitHub Actions.
 - **Cross-Platform Support**: Works on both Linux and Windows runners
 - **Environment Configuration**: Automatically sets up all necessary environment variables
 
-## Supported Platforms
+## Tested Platforms
 
 - **Linux**: ubuntu-latest, ubuntu-24.04, ubuntu-22.04
 - **Windows**: windows-latest, windows-2025, windows-2022
