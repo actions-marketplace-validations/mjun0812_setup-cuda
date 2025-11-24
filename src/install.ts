@@ -149,30 +149,44 @@ async function installCudaLinuxNetwork(
   const packageName = cudaRepoAndPackage.packageName;
 
   let cudaPath: string | undefined = undefined;
-  if (osInfo.idLink === 'debian') {
-    // Set up CUDA repository
-    let repoFilePath = await tc.downloadTool(repoUrl);
-    repoFilePath = path.resolve(repoFilePath);
-    if (repoUrl.endsWith('.deb')) {
+  try {
+    if (osInfo.idLink === 'debian') {
+      // Set up CUDA repository
+      let repoFilePath: string;
+      try {
+        repoFilePath = await tc.downloadTool(repoUrl);
+      } catch (error) {
+        throw new Error(`Failed to download CUDA repository file from ${repoUrl}: ${error}`);
+      }
       repoFilePath = path.resolve(repoFilePath);
-      await exec.exec(`sudo dpkg -i ${repoFilePath}`);
-      await exec.exec(`sudo apt-get update`);
-    } else if (repoUrl.endsWith('.pin')) {
-      await exec.exec(`sudo mv ${repoFilePath} /etc/apt/preferences.d/cuda-repository-pin-600`);
-      const repoRootUrl = repoUrl.replace(/\/[\w.-]+\.pin$/, '');
-      await exec.exec(`sudo add-apt-repository "deb ${repoRootUrl} /"`);
-      await exec.exec(`sudo apt-get update`);
+
+      if (repoUrl.endsWith('.deb')) {
+        await exec.exec(`sudo dpkg -i ${repoFilePath}`);
+        await exec.exec(`sudo apt-get update`);
+      } else if (repoUrl.endsWith('.pin')) {
+        await exec.exec(`sudo mv ${repoFilePath} /etc/apt/preferences.d/cuda-repository-pin-600`);
+        const repoRootUrl = repoUrl.replace(/\/[\w.-]+\.pin$/, '');
+        await exec.exec(`sudo add-apt-repository "deb ${repoRootUrl} /"`);
+        await exec.exec(`sudo apt-get update`);
+      }
+      // Install CUDA toolkit
+      await exec.exec(`sudo apt-get install -y ${packageName}`);
+      cudaPath = '/usr/local/cuda';
+    } else if (osInfo.idLink === 'fedora') {
+      let repoFilePath: string;
+      try {
+        repoFilePath = await tc.downloadTool(repoUrl);
+      } catch (error) {
+        throw new Error(`Failed to download CUDA repository file from ${repoUrl}: ${error}`);
+      }
+      repoFilePath = path.resolve(repoFilePath);
+      await exec.exec(`sudo dnf config-manager --add-repo ${repoUrl}`);
+      await exec.exec(`sudo dnf clean all`);
+      await exec.exec(`sudo dnf install -y ${packageName}`);
+      cudaPath = '/usr/local/cuda';
     }
-    // Install CUDA toolkit
-    await exec.exec(`sudo apt-get install -y ${packageName}`);
-    cudaPath = '/usr/local/cuda';
-  } else if (osInfo.idLink === 'fedora') {
-    let repoFilePath = await tc.downloadTool(repoUrl);
-    repoFilePath = path.resolve(repoFilePath);
-    await exec.exec(`sudo dnf config-manager --add-repo ${repoUrl}`);
-    await exec.exec(`sudo dnf clean all`);
-    await exec.exec(`sudo dnf install -y ${packageName}`);
-    cudaPath = '/usr/local/cuda';
+  } catch (error) {
+    throw new Error(`Failed to install CUDA via network: ${error}`);
   }
   return cudaPath;
 }
@@ -190,7 +204,14 @@ async function installCudaWindowsNetwork(version: string): Promise<string | unde
   }
 
   const filename = `cuda_${version}_windows_network.exe`;
-  let installerPath = await tc.downloadTool(networkInstallerUrl, filename);
+  let installerPath: string;
+  try {
+    installerPath = await tc.downloadTool(networkInstallerUrl, filename);
+  } catch (error) {
+    throw new Error(
+      `Failed to download CUDA network installer from ${networkInstallerUrl}: ${error}`
+    );
+  }
   installerPath = path.resolve(installerPath);
 
   // Install using the same method as local installer (silent mode)
@@ -201,7 +222,11 @@ async function installCudaWindowsNetwork(version: string): Promise<string | unde
   core.info(`Executing: ${installerPath} ${installArgs.join(' ')}`);
 
   // Execute installer
-  await exec.exec(installerPath, installArgs);
+  try {
+    await exec.exec(installerPath, installArgs);
+  } catch (error) {
+    throw new Error(`Failed to execute CUDA installer: ${error}`);
+  }
 
   // Clean up installer
   await io.rmRF(installerPath);
