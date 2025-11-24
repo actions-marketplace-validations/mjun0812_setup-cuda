@@ -515,6 +515,7 @@ export async function findCudaRepoAndPackageLinux(
   }
   if (!filename) {
     debugLog(`repoFiles: ${repoFiles.join(', ')}`);
+    debugLog(`num of repoFiles: ${repoFiles.length}`);
     debugLog(`cudaRepoUrl: ${cudaRepoUrl}`);
     debugLog(`filename: ${filename}`);
     throw new Error(`CUDA repository file for ${cudaVersion} not found`);
