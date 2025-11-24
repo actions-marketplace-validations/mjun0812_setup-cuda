@@ -1,6 +1,6 @@
 import { HttpClient } from '@actions/http-client';
 import { OS, Arch, LinuxDistribution } from './os_arch';
-import { sortVersions, compareVersions } from './utils';
+import { sortVersions, compareVersions, debugLog } from './utils';
 import { CUDA_LINKS, START_SUPPORTED_CUDA_VERSION, OLD_CUDA_VERSIONS } from './const';
 
 /**
@@ -422,6 +422,7 @@ export async function findCudaNetworkInstallerWindows(
   let url = await getCudaLocalInstallerUrl(version, OS.WINDOWS, Arch.X86_64);
   url = url.replace('local_installers', 'network_installers');
   url = url.replace('.exe', '_network.exe');
+  debugLog(`CUDA Windows network installer URL: ${url}`);
 
   // Verify that the network installer exists
   const client = new HttpClient('setup-cuda');
