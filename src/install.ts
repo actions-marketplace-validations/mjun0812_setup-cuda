@@ -25,7 +25,7 @@ async function installCudaLinuxLocal(installerPath: string): Promise<void> {
   // --silent: Run installer in silent mode
   // --toolkit: Install CUDA Toolkit only
   const cudaPath = '/usr/local/cuda';
-  const installArgs = ['--silent', '--toolkit', `--toolkitpath=${cudaPath}`];
+  const installArgs = ['--silent', '--override', '--toolkit', `--toolkitpath=${cudaPath}`];
 
   debugLog(`Executing: ${command} ${installArgs.join(' ')}`);
   await exec.exec(command, installArgs);
@@ -92,7 +92,7 @@ export async function installCudaLocal(version: string, os: OS, arch: Arch): Pro
     } catch (error) {
       try {
         await exec.exec('cat /var/log/cuda-installer.log');
-      } catch (logErr) {
+      } catch {
         // Ignore errors from log output
       }
       throw error;
