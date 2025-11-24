@@ -179,12 +179,13 @@ async function installCudaWindowsNetwork(version: string): Promise<string | unde
     throw new Error(`CUDA network installer not found for version ${version}`);
   }
 
+  const filename = `cuda_${version}_windows_network.exe`;
   let installerPath: string;
   try {
-    installerPath = await tc.downloadTool(networkInstallerUrl);
+    installerPath = await tc.downloadTool(networkInstallerUrl, filename);
   } catch (error) {
     throw new Error(
-      `Failed to download CUDA network installer from ${networkInstallerUrl}: ${error}`
+      `Failed to download CUDA network installer from ${networkInstallerUrl}: ${error} for version ${version}`
     );
   }
   installerPath = path.resolve(installerPath);
