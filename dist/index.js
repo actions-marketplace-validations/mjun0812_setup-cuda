@@ -22665,14 +22665,16 @@ var CUDA_LINKS = {
     md5sumUrl: "https://developer.download.nvidia.com/compute/cuda/10.0/Prod/docs/sidebar/md5sum.txt",
     linuxX86Url: "http://developer.download.nvidia.com/compute/cuda/10.0/Prod/patches/1/cuda_10.0.130.1_linux.run",
     linuxArm64Url: "",
-    windowsUrl: "https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_411.31_win10"
+    windowsLocalInstallerUrl: "https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_411.31_win10",
+    windowsNetworkInstallerUrl: "https://developer.nvidia.com/compute/cuda/10.0/Prod/network_installers/cuda_10.0.130_win10_network"
   },
   // '10.1.105': {
   "10.1": {
     md5sumUrl: "https://developer.download.nvidia.com/compute/cuda/10.1/Prod/docs/sidebar/md5sum.txt",
     linuxX86Url: "https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.105_418.39_linux.run",
     linuxArm64Url: "",
-    windowsUrl: "https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.105_418.96_win10.exe"
+    windowsLocalInstallerUrl: "https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.105_418.96_win10.exe",
+    windowsNetworkInstallerUrl: "https://developer.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.105_win10_network.exe"
   },
   // '10.1.168': {
   "10.1.1": {
@@ -22680,7 +22682,8 @@ var CUDA_LINKS = {
     md5sumUrl: "https://developer.download.nvidia.com/compute/cuda/10.1/Prod/docs2/sidebar/md5sum-2.txt",
     linuxX86Url: "https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.168_418.67_linux.run",
     linuxArm64Url: "",
-    windowsUrl: "https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.168_425.25_win10.exe"
+    windowsLocalInstallerUrl: "https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.168_425.25_win10.exe",
+    windowsNetworkInstallerUrl: "https://developer.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.168_win10_network.exe"
   },
   // '10.1.243': {
   "10.1.2": {
@@ -22688,13 +22691,15 @@ var CUDA_LINKS = {
     md5sumUrl: "https://developer.download.nvidia.com/compute/cuda/10.1/Prod/docs3/sidebar/md5sum.txt",
     linuxX86Url: "https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run",
     linuxArm64Url: "",
-    windowsUrl: "https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_426.00_win10.exe"
+    windowsLocalInstallerUrl: "https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_426.00_win10.exe",
+    windowsNetworkInstallerUrl: "https://developer.download.nvidia.com/compute/cuda/10.1/Prod/network_installers/cuda_10.1.243_win10_network.exe"
   },
   "10.2": {
     md5sumUrl: "https://developer.download.nvidia.com/compute/cuda/10.2/Prod/docs/sidebar/md5sum2.txt",
     linuxX86Url: "https://developer.download.nvidia.com/compute/cuda/10.2/Prod/patches/2/cuda_10.2.2_linux.run",
     linuxArm64Url: "",
-    windowsUrl: "https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_441.22_win10.exe"
+    windowsLocalInstallerUrl: "https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_441.22_win10.exe",
+    windowsNetworkInstallerUrl: "https://developer.download.nvidia.com/compute/cuda/10.2/Prod/patches/2/cuda_10.2.2_win10.exe"
   }
 };
 
@@ -22849,14 +22854,14 @@ async function getCudaLocalInstallerUrl(version, os2, arch2) {
     if (os2 === "linux" /* LINUX */ && arch2 === "arm64-sbsa" /* ARM64_SBSA */ && link.linuxArm64Url) {
       return link.linuxArm64Url;
     }
-    if (os2 === "windows" /* WINDOWS */ && link.windowsUrl) {
-      return link.windowsUrl;
+    if (os2 === "windows" /* WINDOWS */ && link.windowsLocalInstallerUrl) {
+      return link.windowsLocalInstallerUrl;
     }
   }
   if (majorVersion <= 10 && os2 === "linux" /* LINUX */ && arch2 === "x86_64" /* X86_64 */) {
     return CUDA_LINKS[version].linuxX86Url;
   } else if (majorVersion <= 10 && os2 === "windows" /* WINDOWS */) {
-    return CUDA_LINKS[version].windowsUrl;
+    return CUDA_LINKS[version].windowsLocalInstallerUrl;
   }
   const md5sums = await fetchMd5sum(version);
   let targetFilename = void 0;
@@ -22932,9 +22937,15 @@ async function fetchCudaRepoFiles(url) {
   return fetchCudaRepoItems(url, linkPattern, filterFn, false);
 }
 async function findCudaNetworkInstallerWindows(version) {
+  if (version in CUDA_LINKS && CUDA_LINKS[version].windowsNetworkInstallerUrl) {
+    return CUDA_LINKS[version].windowsNetworkInstallerUrl;
+  }
   let url = await getCudaLocalInstallerUrl(version, "windows" /* WINDOWS */, "x86_64" /* X86_64 */);
-  url = url.replace("local_installers", "network_installers");
-  url = url.replace(".exe", "_network.exe");
+  url = url.replace(
+    /local_installers\/cuda_([^_]+)_[^_]+_(.+)\.exe/,
+    "network_installers/cuda_$1_$2_network.exe"
+  );
+  debugLog(`CUDA Windows network installer URL: ${url}`);
   const client = new import_http_client.HttpClient("setup-cuda");
   try {
     const response = await client.head(url);
@@ -23136,7 +23147,7 @@ async function installCudaLinuxNetwork(version, arch2, osInfo) {
 async function installCudaWindowsNetwork(version) {
   const networkInstallerUrl = await findCudaNetworkInstallerWindows(version);
   if (!networkInstallerUrl) {
-    return void 0;
+    throw new Error(`CUDA network installer not found for version ${version}`);
   }
   const filename = `cuda_${version}_windows_network.exe`;
   let installerPath;
@@ -23144,7 +23155,7 @@ async function installCudaWindowsNetwork(version) {
     installerPath = await tc.downloadTool(networkInstallerUrl, filename);
   } catch (error) {
     throw new Error(
-      `Failed to download CUDA network installer from ${networkInstallerUrl}: ${error}`
+      `Failed to download CUDA network installer from ${networkInstallerUrl}: ${error} for version ${version}`
     );
   }
   installerPath = path.resolve(installerPath);

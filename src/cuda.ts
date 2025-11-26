@@ -282,8 +282,8 @@ export async function getCudaLocalInstallerUrl(
     if (os === OS.LINUX && arch === Arch.ARM64_SBSA && link.linuxArm64Url) {
       return link.linuxArm64Url;
     }
-    if (os === OS.WINDOWS && link.windowsUrl) {
-      return link.windowsUrl;
+    if (os === OS.WINDOWS && link.windowsLocalInstallerUrl) {
+      return link.windowsLocalInstallerUrl;
     }
   }
 
@@ -292,7 +292,7 @@ export async function getCudaLocalInstallerUrl(
   if (majorVersion <= 10 && os === OS.LINUX && arch === Arch.X86_64) {
     return CUDA_LINKS[version].linuxX86Url;
   } else if (majorVersion <= 10 && os === OS.WINDOWS) {
-    return CUDA_LINKS[version].windowsUrl;
+    return CUDA_LINKS[version].windowsLocalInstallerUrl;
   }
 
   // For CUDA 11 and later, the installer URLs are the same pattern for all architectures
@@ -418,10 +418,20 @@ async function fetchCudaRepoFiles(url: string): Promise<string[]> {
 export async function findCudaNetworkInstallerWindows(
   version: string
 ): Promise<string | undefined> {
-  // https://developer.download.nvidia.com/compute/cuda/<CUDA_VERSION>/network_installers/cuda_<CUDA_VERSION>_<OS>_network.exe
+  if (version in CUDA_LINKS && CUDA_LINKS[version].windowsNetworkInstallerUrl) {
+    return CUDA_LINKS[version].windowsNetworkInstallerUrl;
+  }
+
+  // https://developer.download.nvidia.com/compute/cuda/
+  //   <CUDA_VERSION>/local_installers/cuda_<CUDA_VERSION>_<DRIVER_VERSION>_<OS>.exe
+  // to
+  // https://developer.download.nvidia.com/compute/cuda/
+  //   <CUDA_VERSION>/network_installers/cuda_<CUDA_VERSION>_<OS>_network.exe
   let url = await getCudaLocalInstallerUrl(version, OS.WINDOWS, Arch.X86_64);
-  url = url.replace('local_installers', 'network_installers');
-  url = url.replace('.exe', '_network.exe');
+  url = url.replace(
+    /local_installers\/cuda_([^_]+)_[^_]+_(.+)\.exe/,
+    'network_installers/cuda_$1_$2_network.exe'
+  );
   debugLog(`CUDA Windows network installer URL: ${url}`);
 
   // Verify that the network installer exists
