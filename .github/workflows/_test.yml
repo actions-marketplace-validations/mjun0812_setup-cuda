@@ -1,4 +1,4 @@
-name: Test
+name: _Test
 
 on:
   workflow_call:
@@ -23,7 +23,7 @@ on:
 
 jobs:
   Test:
-    name: Test (${{ inputs.os }}, CUDA ${{ inputs.version }})
+    name: Test
     runs-on: ${{ inputs.os }}
     env:
       ACTIONS_STEP_DEBUG: ${{ inputs.debug }}

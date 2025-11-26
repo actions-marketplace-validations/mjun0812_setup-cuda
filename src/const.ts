@@ -25,7 +25,7 @@ export const CUDA_LINKS: Record<string, CudaLink> = {
     md5sumUrl:
       'https://developer.download.nvidia.com/compute/cuda/10.0/Prod/docs/sidebar/md5sum.txt',
     linuxX86Url:
-      'http://developer.download.nvidia.com/compute/cuda/10.0/Prod/patches/1/cuda_10.0.130.1_linux.run',
+      'https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux',
     linuxArm64Url: '',
     windowsLocalInstallerUrl:
       'https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_411.31_win10',
@@ -74,11 +74,11 @@ export const CUDA_LINKS: Record<string, CudaLink> = {
     md5sumUrl:
       'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/docs/sidebar/md5sum2.txt',
     linuxX86Url:
-      'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/patches/2/cuda_10.2.2_linux.run',
+      'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
     linuxArm64Url: '',
     windowsLocalInstallerUrl:
       'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_441.22_win10.exe',
     windowsNetworkInstallerUrl:
-      'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/patches/2/cuda_10.2.2_win10.exe',
+      'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/network_installers/cuda_10.2.89_win10_network.exe',
   },
 };

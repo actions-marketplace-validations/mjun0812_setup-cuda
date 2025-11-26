@@ -12,11 +12,12 @@ Set up a specific version of NVIDIA CUDA in GitHub Actions.
 
 ## Features
 
-- **Dynamic Version Selection**: Install any CUDA version without waiting for action updates
-- **Flexible Version Specification**: Support for `latest`, `Major.Minor`, or `Major.Minor.Patch` formats
-- **Automatic Installation Method Selection**: Intelligently chooses between network and local installers
-- **Cross-Platform Support**: Works on both Linux and Windows runners
-- **Environment Configuration**: Automatically sets up all necessary environment variables
+- 🚀 **Dynamic Version Selection**: Install any CUDA version without waiting for action updates
+- 🎯 **Flexible Version Specification**: Support for `latest`, `Major`, `Major.Minor`, or `Major.Minor.Patch` formats
+- ⚡️ **Automatic Installation Method Selection**: Intelligently chooses between network and local installers
+- 💻 **Cross-Platform Support**: Works on both Linux and Windows runners
+- 🛠️ **Environment Configuration**: Automatically sets up all necessary environment variables
+- ✅ **Supported Versions**: Supports CUDA versions >= 10.0
 
 ## Tested Platforms
 
@@ -82,11 +83,12 @@ steps:
 
 ### `version`
 
-**Description**: The version of NVIDIA CUDA to install.
+**Description**: The version of NVIDIA CUDA to install (supports versions > 10.0).
 
 **Format**:
 
 - `latest`: Install the latest available version
+- `Major` (e.g., `13`): Install the latest minor version for the specified major version
 - `Major.Minor` (e.g., `12.4`): Install the latest patch version for the specified major.minor version
 - `Major.Minor.Patch` (e.g., `12.4.1`): Install the exact version specified
 

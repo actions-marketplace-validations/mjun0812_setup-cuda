@@ -18,13 +18,13 @@ jobs:
           - ubuntu-24.04
           - ubuntu-22.04
           # https://github.com/actions/partner-runner-images
-          # - ubuntu-24.04-arm
-          # - ubuntu-22.04-arm
+          - ubuntu-24.04-arm
+          - ubuntu-22.04-arm
         version:
-          - 10.0
-          - 11.0
-          - 12.0
-          - 13
+          - '10.0'
+          - '11.0'
+          - '12.0'
+          - '13.0'
           - latest
         method:
           - local
@@ -32,9 +32,9 @@ jobs:
         exclude:
           # CUDA 10.x is not supported on ARM architecture
           - os: ubuntu-24.04-arm
-            version: 10.0
+            version: '10.0'
           - os: ubuntu-22.04-arm
-            version: 10.0
+            version: '10.0'
     uses: ./.github/workflows/_test.yml
     with:
       os: ${{ matrix.os }}
