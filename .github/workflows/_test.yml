@@ -76,6 +76,8 @@ jobs:
             echo "Error: CUDA_PATH is not set"
             exit 1
           fi
+          ls $CUDA_PATH
+          ls $CUDA_PATH/bin
 
           # Check if nvcc exists
           if command -v nvcc &> /dev/null; then
