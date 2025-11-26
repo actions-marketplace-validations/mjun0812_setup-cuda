@@ -23,7 +23,6 @@ on:
 
 jobs:
   Test:
-    name: Test
     runs-on: ${{ inputs.os }}
     env:
       ACTIONS_STEP_DEBUG: ${{ inputs.debug }}
@@ -69,6 +68,8 @@ jobs:
         run: |
           echo "CUDA Version: ${{ steps.setup-cuda.outputs.version }}"
           echo "CUDA Path: ${{ steps.setup-cuda.outputs.cuda-path }}"
+
+          echo "PATH: $PATH"
 
           # Check if CUDA_PATH is set
           if [ -z "$CUDA_PATH" ]; then
