@@ -23050,10 +23050,13 @@ var io = __toESM(require_io());
 async function installCudaLinuxLocal(installerPath) {
   core2.info("Installing CUDA on Linux...");
   const command = `sudo sh ${installerPath}`;
-  const cudaPath = "/usr/local/cuda";
-  const installArgs = ["--silent", "--override", "--toolkit", `--toolkitpath=${cudaPath}`];
+  const installArgs = ["--silent", "--override", "--toolkit"];
   debugLog(`Executing: ${command} ${installArgs.join(" ")}`);
   await exec.exec(command, installArgs);
+  const cudaPath = "/usr/local/cuda";
+  if (!fs2.existsSync(cudaPath)) {
+    throw new Error(`CUDA installation failed. CUDA path not found: ${cudaPath}`);
+  }
 }
 async function installCudaWindowsLocal(installerPath, version) {
   core2.info("Installing CUDA on Windows...");
@@ -23065,7 +23068,6 @@ async function installCudaWindowsLocal(installerPath, version) {
   if (!fs2.existsSync(cudaPath)) {
     throw new Error(`CUDA installation failed. Path not found: ${cudaPath}`);
   }
-  await io.rmRF(installerPath);
 }
 async function installCudaLocal(version, os2, arch2) {
   const cudaInstallerUrl = await getCudaLocalInstallerUrl(version, os2, arch2);
