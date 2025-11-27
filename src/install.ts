@@ -24,11 +24,16 @@ async function installCudaLinuxLocal(installerPath: string): Promise<void> {
   // Install CUDA toolkit only (without driver)
   // --silent: Run installer in silent mode
   // --toolkit: Install CUDA Toolkit only
-  const cudaPath = '/usr/local/cuda';
-  const installArgs = ['--silent', '--override', '--toolkit', `--toolkitpath=${cudaPath}`];
+  const installArgs = ['--silent', '--override', '--toolkit'];
 
   debugLog(`Executing: ${command} ${installArgs.join(' ')}`);
   await exec.exec(command, installArgs);
+
+  // Verify installation
+  const cudaPath = '/usr/local/cuda';
+  if (!fs.existsSync(cudaPath)) {
+    throw new Error(`CUDA installation failed. CUDA path not found: ${cudaPath}`);
+  }
 }
 
 /**
@@ -56,9 +61,6 @@ async function installCudaWindowsLocal(installerPath: string, version: string): 
   if (!fs.existsSync(cudaPath)) {
     throw new Error(`CUDA installation failed. Path not found: ${cudaPath}`);
   }
-
-  // Remove installer
-  await io.rmRF(installerPath);
 }
 
 /**
