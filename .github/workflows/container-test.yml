@@ -1,0 +1,27 @@
+name: Container Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Container-Test:
+    name: Container Test
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - 'almalinux:9'
+          - 'fedora:latest'
+          - 'quay.io/pypa/manylinux2014_x86_64'
+          - 'quay.io/pypa/manylinux_2_28_x86_64'
+        version:
+          - latest
+        method:
+          - local
+          - auto
+    uses: ./.github/workflows/_test-container.yml
+    with:
+      container: ${{ matrix.container }}
+      version: ${{ matrix.version }}
+      method: ${{ matrix.method }}
+      debug: true
