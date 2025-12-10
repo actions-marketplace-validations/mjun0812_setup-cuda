@@ -12,7 +12,6 @@ jobs:
         container:
           - 'almalinux:9'
           - 'fedora:latest'
-          - 'quay.io/pypa/manylinux2014_x86_64'
           - 'quay.io/pypa/manylinux_2_28_x86_64'
         version:
           - latest
