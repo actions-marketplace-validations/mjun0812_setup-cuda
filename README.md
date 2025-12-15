@@ -13,13 +13,14 @@ Set up a specific version of NVIDIA CUDA in GitHub Actions.
 - 🚀 **Dynamic Version Selection**: Install any CUDA version without waiting for action updates
 - 🎯 **Flexible Version Specification**: Support for `latest`, `Major`, `Major.Minor`, or `Major.Minor.Patch` formats
 - ⚡️ **Automatic Installation Method Selection**: Intelligently chooses between network and local installers
-- 💻 **Cross-Platform Support**: Works on both Linux and Windows runners
+- 💻 **Cross-Platform Support**: Works on both Linux (x86_64 and ARM64) and Windows (x86_64) runners
+- 🥗 **Supports Both Debian-based and Fedora-based Distributions**: Works seamlessly on Ubuntu, Debian, Fedora, AlmaLinux, and other related container/VM environments
 - 🛠️ **Environment Configuration**: Automatically sets up all necessary environment variables
 - ✅ **Supported Versions**: Supports CUDA versions >= 10.0
 
 ## Tested Platforms
 
-- **Linux**: ubuntu-latest, ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-22.04-arm 
+- **Linux**: ubuntu-latest, ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-22.04-arm, fedora, almalinux, manylinux_2_28_x86_64
 - **Windows**: windows-latest, windows-2025, windows-2022
 
 ## Quick Start
@@ -75,6 +76,37 @@ steps:
     with:
       version: '12.4'
       method: 'network'  # or 'local', 'auto'
+```
+
+### Install CUDA on Fedora-based distribution
+
+```yaml
+TestContainer:
+  runs-on: ubuntu-latest
+  container:
+    image: fedora:latest
+
+  steps:
+    - name: Install System Dependencies
+      shell: bash
+      run: |
+        # POSIX-compatible redirection so it works even without bash
+        if command -v dnf >/dev/null 2>&1; then
+          echo "dnf found"
+          dnf install -y --allowerasing libxml2 wget gcc gcc-c++ make curl sudo git
+        elif command -v yum >/dev/null 2>&1; then
+          echo "yum found"
+          yum install -y libxml2 wget gcc gcc-c++ make curl sudo git
+        elif command -v apt-get >/dev/null 2>&1; then
+          echo "apt-get found"
+          apt-get update
+          apt-get install -y libxml2 curl wget build-essential sudo git
+        fi
+
+    - name: Setup CUDA
+      uses: mjun0812/setup-cuda@v1
+      with:
+        version: '12.4'
 ```
 
 ## Inputs
@@ -199,3 +231,4 @@ If you encounter an error like `No space left on device`, you can try to expand 
 [Jimver/cuda-toolkit](https://github.com/Jimver/cuda-toolkit) is a same Github Action for installing NVIDIA CUDA.
 That action installs CUDA from hard-coded URLs, whereas this repository installs CUDA from dynamically generated URLs. Therefore, you can download the latest CUDA without waiting for the Action to be updated.
 In addition, it supports specifying versions as `latest` or by major/minor version, and automatically selects between `network` and `local` installers.
+Furthermore, this repository supports ARM64 architecture on Linux, which is not supported by [Jimver/cuda-toolkit](https://github.com/Jimver/cuda-toolkit).
