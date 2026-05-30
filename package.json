@@ -4,16 +4,19 @@
   "description": "Set up a specific version of NVIDIA CUDA in GitHub Actions",
   "main": "dist/index.js",
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --sourcemap",
-    "format": "prettier --write 'src/**/*.ts'",
-    "format:check": "prettier --check 'src/**/*.ts'",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
+    "build": "vp pack",
+    "format": "vp fmt src test",
+    "format:check": "vp fmt --check src test",
+    "lint": "vp lint src test",
+    "lint:fix": "vp lint src test --fix",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "all": "pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "check": "vp check",
+    "check:fix": "vp check --fix",
+    "test": "vp test run",
+    "test:watch": "vp test",
+    "test:coverage": "vp test run --coverage",
+    "all": "vp check && tsc --noEmit && vp test run && vp pack",
+    "prepare": "vp config"
   },
   "keywords": [
     "actions",
@@ -22,25 +25,21 @@
   ],
   "author": "mjun0812",
   "license": "MIT",
-  "packageManager": "pnpm@10.18.3",
+  "packageManager": "pnpm@10.33.4",
   "engines": {
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/exec": "^1.1.1",
-    "@actions/http-client": "^3.0.0",
-    "@actions/io": "^1.1.3",
-    "@actions/tool-cache": "^2.0.2"
+    "@actions/core": "^3.0.0",
+    "@actions/exec": "^3.0.0",
+    "@actions/http-client": "^4.0.0",
+    "@actions/io": "^3.0.0",
+    "@actions/tool-cache": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
-    "@typescript-eslint/eslint-plugin": "^8.46.2",
-    "@typescript-eslint/parser": "^8.46.2",
-    "esbuild": "^0.25.12",
-    "eslint": "^9.39.0",
-    "prettier": "^3.6.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.8"
+    "typescript": "^6.0.0",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import {
   OS,
@@ -11,7 +12,7 @@ import {
   isFedoraBased,
   getPackageManagerCommand,
 } from './os_arch';
-import { debugLog, hasRootPrivileges } from './utils';
+import { debugLog, getErrorMessage, hasRootPrivileges } from './utils';
 import {
   getCudaLocalInstallerUrl,
   findCudaRepoAndPackageLinux,
@@ -26,6 +27,38 @@ import * as io from '@actions/io';
  */
 function getSudoPrefix(): string {
   return hasRootPrivileges() ? '' : 'sudo';
+}
+
+/**
+ * Get a stable download destination for Windows installers.
+ * @param filename - Installer filename
+ * @returns Full path in the runner temp directory
+ */
+function getWindowsInstallerDownloadPath(filename: string): string {
+  const tempDir = process.env['RUNNER_TEMP'] || os.tmpdir();
+  return path.win32.join(tempDir, filename);
+}
+
+/**
+ * Normalize installer paths for the target operating system.
+ * @param installerPath - Installer path returned by tool-cache
+ * @param osType - Target operating system
+ * @returns Normalized installer path
+ */
+function normalizeInstallerPath(installerPath: string, osType: OS): string {
+  if (osType === OS.WINDOWS) {
+    return path.win32.normalize(installerPath);
+  }
+  return path.resolve(installerPath);
+}
+
+/**
+ * Quote a Windows executable path so spaces are preserved by @actions/exec.
+ * @param installerPath - Absolute path to the installer
+ * @returns Quoted executable path
+ */
+function getWindowsInstallerCommand(installerPath: string): string {
+  return `"${installerPath}"`;
 }
 
 /**
@@ -65,9 +98,10 @@ async function installCudaWindowsLocal(installerPath: string, version: string): 
   // Install CUDA toolkit only (without driver)
   // -s: Silent installation
   const installArgs = ['-s'];
+  const command = getWindowsInstallerCommand(installerPath);
 
-  core.info(`Executing: ${installerPath} ${installArgs.join(' ')}`);
-  await exec.exec(installerPath, installArgs);
+  core.info(`Executing: ${command} ${installArgs.join(' ')}`);
+  await exec.exec(command, installArgs);
 
   // Get CUDA installation path
   // Windows default: C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v<version>
@@ -100,8 +134,10 @@ export async function installCudaLocal(version: string, os: OS, arch: Arch): Pro
   } else if (os === OS.WINDOWS) {
     filename = `cuda_${version}_windows.exe`;
   }
-  let installerPath = await tc.downloadTool(cudaInstallerUrl, filename);
-  installerPath = path.resolve(installerPath);
+  const downloadDestination =
+    os === OS.WINDOWS ? getWindowsInstallerDownloadPath(filename) : filename;
+  let installerPath = await tc.downloadTool(cudaInstallerUrl, downloadDestination);
+  installerPath = normalizeInstallerPath(installerPath, os);
   core.info(`CUDA installer downloaded to: ${installerPath}`);
 
   // Install CUDA
@@ -158,7 +194,9 @@ async function installCudaLinuxNetwork(
       try {
         repoFilePath = await tc.downloadTool(repoUrl);
       } catch (error) {
-        throw new Error(`Failed to download CUDA repository file from ${repoUrl}: ${error}`);
+        throw new Error(
+          `Failed to download CUDA repository file from ${repoUrl}: ${getErrorMessage(error)}`
+        );
       }
       repoFilePath = path.resolve(repoFilePath);
 
@@ -186,7 +224,7 @@ async function installCudaLinuxNetwork(
       cudaPath = '/usr/local/cuda';
     }
   } catch (error) {
-    throw new Error(`Failed to install CUDA via network: ${error}`);
+    throw new Error(`Failed to install CUDA via network: ${getErrorMessage(error)}`);
   }
   return cudaPath;
 }
@@ -207,26 +245,30 @@ async function installCudaWindowsNetwork(version: string): Promise<string | unde
   const filename = `cuda_${version}_windows_network.exe`;
   let installerPath: string;
   try {
-    installerPath = await tc.downloadTool(networkInstallerUrl, filename);
+    installerPath = await tc.downloadTool(
+      networkInstallerUrl,
+      getWindowsInstallerDownloadPath(filename)
+    );
   } catch (error) {
     throw new Error(
-      `Failed to download CUDA network installer from ${networkInstallerUrl}: ${error} for version ${version}`
+      `Failed to download CUDA network installer from ${networkInstallerUrl}: ${getErrorMessage(error)} for version ${version}`
     );
   }
-  installerPath = path.resolve(installerPath);
+  installerPath = normalizeInstallerPath(installerPath, OS.WINDOWS);
 
   // Install using the same method as local installer (silent mode)
   // -s: Silent installation
   const installArgs = ['-s'];
+  const command = getWindowsInstallerCommand(installerPath);
 
   core.info(`Installing CUDA on Windows (Network)...`);
-  core.info(`Executing: ${installerPath} ${installArgs.join(' ')}`);
+  core.info(`Executing: ${command} ${installArgs.join(' ')}`);
 
   // Execute installer
   try {
-    await exec.exec(installerPath, installArgs);
+    await exec.exec(command, installArgs);
   } catch (error) {
-    throw new Error(`Failed to execute CUDA installer: ${error}`);
+    throw new Error(`Failed to execute CUDA installer: ${getErrorMessage(error)}`);
   }
 
   // Clean up installer
