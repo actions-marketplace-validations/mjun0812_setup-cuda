@@ -1,10 +1,10 @@
 # setup-cuda
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/mjun0812/setup-cuda)](https://github.com/mjun0812/setup-cuda/releases)
-[![GitHub](https://img.shields.io/github/license/mjun0812/setup-cuda)](https://github.com/mjun0812/setup-cuda)
-[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Setup%20CUDA-blue.svg)](https://github.com/marketplace/actions/mjun0812-setup-cuda)  
-[![github-sponsor](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#white)](https://github.com/sponsors/mjun0812)
-[![buy-me-a-coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/mjun0812)
+[![Release](https://shieldcn.dev/github/mjun0812/setup-cuda/release.svg)](https://github.com/mjun0812/setup-cuda/releases)
+[![License](https://shieldcn.dev/github/mjun0812/setup-cuda/license.svg)](https://github.com/mjun0812/setup-cuda)
+[![Marketplace](https://shieldcn.dev/badge/Marketplace-Setup_CUDA-blue.svg)](https://github.com/marketplace/actions/mjun0812-setup-cuda)  
+[![GitHub Sponsors](https://shieldcn.dev/badge/Sponsor-mjun0812-pink.svg?logo=githubsponsors)](https://github.com/sponsors/mjun0812)
+[![Buy Me A Coffee](https://shieldcn.dev/badge/Buy_Me_A_Coffee-mjun0812-yellow.svg?logo=buymeacoffee)](https://buymeacoffee.com/mjun0812)
 
 Set up a specific version of NVIDIA CUDA in GitHub Actions.
 
@@ -138,6 +138,43 @@ TestContainer:
 **Required**: No
 **Default**: `auto`
 
+### `cache-installer`
+
+**Description**: Whether to cache the downloaded CUDA installer file (the Linux runfile, the Windows local installer, or the Windows network installer) in the [GitHub Actions cache](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching).
+
+- When a cache entry exists, the installer is restored from the cache instead of being downloaded
+- Otherwise, the installer is downloaded and saved to the cache after a successful installation
+- The cache key is `setup-cuda-installer-<os>-<arch>-<installer file name>`
+- Has no effect for the Linux network installation (apt / dnf), which downloads no installer file
+- The local installers are several GB (about 4 GB for CUDA 13.4) and count against the default `10 GB` per-repository cache limit, so caching them can evict your other caches
+
+**Required**: No
+**Default**: `false`
+
+### `cache-toolkit`
+
+**Description**: Whether to cache the installed CUDA toolkit directory in the [GitHub Actions cache](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching).
+
+- When a cache entry exists, the toolkit is restored from the cache, and nothing is downloaded or installed
+- Otherwise, CUDA is installed as usual and the toolkit directory is saved to the cache after a successful installation
+- The cache holds only the toolkit directory: `/usr/local/cuda-<major>.<minor>` on Linux (`/usr/local/cuda` is linked to it after a restore) and `C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v<major>.<minor>` on Windows. Anything the installer puts elsewhere (registry entries, Nsight tools, machine-level environment variables) is not restored
+- On Windows, the CUDA Visual Studio integration (`extras\visual_studio_integration\MSBuildExtensions`) is copied into every Visual Studio installation found by `vswhere` after a restore
+- The cache key is `setup-cuda-toolkit-linux-<arch>-<distribution id>-<distribution version>-<CUDA version>-<method>` on Linux and `setup-cuda-toolkit-windows-<arch>-<CUDA version>-<method>` on Windows
+- A toolkit is several GB and counts against the default `10 GB` per-repository cache limit, so caching it can evict your other caches
+
+**Required**: No
+**Default**: `false`
+
+**Example**:
+
+```yaml
+- name: Setup CUDA
+  uses: mjun0812/setup-cuda@v1
+  with:
+    version: '13.0'
+    cache-toolkit: true
+```
+
 ## Outputs
 
 ### `version`
@@ -189,6 +226,7 @@ This action automatically configures the following environment variables for sub
 ### Windows-specific
 
 - `PATH`: Also includes `${CUDA_PATH}/lib/x64` for DLL access
+- `CUDA_PATH_V<major>_<minor>` (e.g., `CUDA_PATH_V13_0`): Path to the CUDA installation directory, used by the CUDA Visual Studio integration (MSBuild) to find the toolkit
 
 ## Troubleshooting
 
